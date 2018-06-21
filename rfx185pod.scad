@@ -1,5 +1,6 @@
 STANDOFF_DISTANCE = 30.5;
 STANDOFF_DIAMETER = 5.04;
+MOUNT_THICKNESS = 2;
 STANDOFF_HEIGHT = 30;
 BRIDGE_OFFSET = -2.52; // [-2.5:0.1:2.5]
 TOLERANCE = 0.5; // [0:0.05:0.5]
@@ -39,13 +40,6 @@ module standoff(diameter, height, center) {
     cylinder(height,diameter/2, diameter/2, center);
 }
 
-module standoff_mount(mount_diameter, mount_height, standoff_diameter, tolerance, center){
-    difference(){
-        standoff(mount_diameter, mount_height, center);
-        standoff(standoff_diameter + tolerance, mount_height*2, center);
-    }
-}
-
 module bridge(bridge_length, bridge_thickness, bridge_height, mount_diameter, bridge_offset, tolerance, center){
     angle_step = 180;
     
@@ -74,13 +68,13 @@ module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset,
     angle_step = 90;
     translate([0, 0,connector_height/2])
     
-    diff(){
+    difference(){
         union(){
             for (n = [0:1:number_of_bridges]){
                   rotate([0,0, n*angle_step])
                   translate([-standoff_distance/2,-standoff_distance/2, 0]) 
                   color("red")
-                  standoff(mount_diameter, connector_height, standoff_diameter, tolerance, true);
+                  standoff(mount_diameter, connector_height, true);
              };
              for (n = [0:1:number_of_bridges-1]){
                   rotate([0,0, n*angle_step])
@@ -88,11 +82,13 @@ module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset,
                   bridge(bridge_length, bridge_thickness, bridge_height, standoff_diameter, bridge_offset, tolerance, true);
              };         
          };
+
          for (n = [0:1:number_of_bridges]){
                   rotate([0,0, n*angle_step])
                   translate([-standoff_distance/2,-standoff_distance/2, 0]) 
                   color("red")
-                  standoff_mount(standoff_diameter + tolerance, connector_height, standoff_diameter, tolerance, true);         
+                  standoff(standoff_diameter + tolerance, connector_height * 3, true);                  
+         }    
         
     }
    
