@@ -1,7 +1,7 @@
 STANDOFF_DISTANCE = 30.5;
 STANDOFF_DIAMETER = 5.04;
 MOUNT_THICKNESS = 2.5;
-STANDOFF_HEIGHT = 2;
+STANDOFF_HEIGHT = 30;
 BRIDGE_OFFSET = -4; // [-2.5:0.1:2.5]
 TOLERANCE = 0.2; // [0:0.05:0.5]
 
@@ -55,8 +55,8 @@ module bridge(bridge_length, bridge_thickness, bridge_height, mount_diameter, br
     }
 }
 
-module antenna_placeholder(standoff_distance, standoff_height){
-    cube([20,20,20],true);
+module antenna_placeholder(width, height){
+    cube([width,20,standoff_height],true);
 }
 
 module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset) {
@@ -64,8 +64,8 @@ module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset)
     bridge_height = connector_height;
     bridge_thickness = 2;
     
-    placeholder_size = 10;
-    placeholder_height = standoff_height - placeholder_size/2;    
+//    placeholder_size = 10;
+//    placeholder_height = standoff_height - placeholder_size/2;    
     
     number_of_bridges = 1;
     
@@ -90,11 +90,10 @@ module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset)
          };
 //        diff does not work ?    
 //        translate([0,-standoff_distance/2,placeholder_height])         
-//        antenna_placeholder(standoff_distance, standoff_height);         
-    };
-
-//    translate([0,-standoff_distance/2,placeholder_height])             
-//    antenna_placeholder(standoff_distance, standoff_height);         
+//        antenna_placeholder(40, 40, 40);         
+    };      
+        translate([0,-standoff_distance/2,0])         
+        antenna_placeholder(standoff_distance - standoff_diameter, connector_height);       
 }
 
 module pod_with_mounting_holes(standoff_distance, standoff_diameter, standoff_height, mount_thickness, bridge_offset, tolerance) {
