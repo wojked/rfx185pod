@@ -1,13 +1,13 @@
 STANDOFF_DISTANCE = 30.5;
 STANDOFF_DIAMETER = 5.04;
-MOUNT_THICKNESS = 2;
-STANDOFF_HEIGHT = 30;
-BRIDGE_OFFSET = -2.52; // [-2.5:0.1:2.5]
-TOLERANCE = 0.5; // [0:0.05:0.5]
+MOUNT_THICKNESS = 2.5;
+STANDOFF_HEIGHT = 2;
+BRIDGE_OFFSET = -4; // [-2.5:0.1:2.5]
+TOLERANCE = 0.2; // [0:0.05:0.5]
 
 $fn = 128;
 //frame_skeleton(STANDOFF_DISTANCE, STANDOFF_DIAMETER, STANDOFF_HEIGHT);
-pod(STANDOFF_DISTANCE, STANDOFF_DIAMETER, STANDOFF_HEIGHT, BRIDGE_OFFSET, TOLERANCE);
+pod_with_mounting_holes(STANDOFF_DISTANCE, STANDOFF_DIAMETER, STANDOFF_HEIGHT, MOUNT_THICKNESS, BRIDGE_OFFSET, TOLERANCE);
 
 
 module frame_skeleton(standoff_distance, standoff_diameter, standoff_height) {
@@ -26,7 +26,7 @@ module frame_skeleton(standoff_distance, standoff_diameter, standoff_height) {
           standoff(standoff_diameter, standoff_height, true);
      }
      
-     translate([0,0, standoff_height])
+     translate([0,0, standoff_height + base_width/2])
      base(full_side_length, base_width, true);
 }
 
@@ -40,7 +40,7 @@ module standoff(diameter, height, center) {
     cylinder(height,diameter/2, diameter/2, center);
 }
 
-module bridge(bridge_length, bridge_thickness, bridge_height, mount_diameter, bridge_offset, tolerance, center){
+module bridge(bridge_length, bridge_thickness, bridge_height, mount_diameter, bridge_offset, center){
     angle_step = 180;
     
     color("red")
@@ -50,16 +50,22 @@ module bridge(bridge_length, bridge_thickness, bridge_height, mount_diameter, br
         for (n = [0:1:1]){
           rotate([0,0, n*angle_step])
           translate([bridge_length/ 2, 0, 0]) 
-          standoff(mount_diameter + tolerance, bridge_height*2, center);
+          standoff(mount_diameter, bridge_height*2, center);
         }
     }
 }
 
-module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset, tolerance) {
-    connector_height = 4;
+module antenna_placeholder(standoff_distance, standoff_height){
+    cube([20,20,20],true);
+}
+
+module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset) {
+    connector_height = standoff_height;
     bridge_height = connector_height;
-    mount_diameter = standoff_diameter + 2;
     bridge_thickness = 2;
+    
+    placeholder_size = 10;
+    placeholder_height = standoff_height - placeholder_size/2;    
     
     number_of_bridges = 1;
     
@@ -74,23 +80,42 @@ module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset,
                   rotate([0,0, n*angle_step])
                   translate([-standoff_distance/2,-standoff_distance/2, 0]) 
                   color("red")
-                  standoff(mount_diameter, connector_height, true);
+                  standoff(standoff_diameter, connector_height, true);
              };
              for (n = [0:1:number_of_bridges-1]){
                   rotate([0,0, n*angle_step])
                   translate([0,-standoff_distance/2, 0]) 
-                  bridge(bridge_length, bridge_thickness, bridge_height, standoff_diameter, bridge_offset, tolerance, true);
+                  bridge(bridge_length, bridge_thickness, bridge_height, standoff_diameter, bridge_offset, true);
              };         
          };
+//        diff does not work ?    
+//        translate([0,-standoff_distance/2,placeholder_height])         
+//        antenna_placeholder(standoff_distance, standoff_height);         
+    };
 
-         for (n = [0:1:number_of_bridges]){
-                  rotate([0,0, n*angle_step])
-                  translate([-standoff_distance/2,-standoff_distance/2, 0]) 
-                  color("red")
-                  standoff(standoff_diameter + tolerance, connector_height * 3, true);                  
-         }    
-        
-    }
-   
+//    translate([0,-standoff_distance/2,placeholder_height])             
+//    antenna_placeholder(standoff_distance, standoff_height);         
 }
 
+module pod_with_mounting_holes(standoff_distance, standoff_diameter, standoff_height, mount_thickness, bridge_offset, tolerance) {
+    connector_height = standoff_height;
+    bridge_height = connector_height;
+    mount_diameter = standoff_diameter + mount_thickness*2;
+    bridge_thickness = 2;
+    
+    number_of_bridges = 1;
+    
+    bridge_length = standoff_distance; 
+
+    angle_step = 90;
+    
+    difference(){
+        pod(standoff_distance, mount_diameter, standoff_height, bridge_offset);
+         for (n = [0:1:number_of_bridges]){
+                  rotate([0,0, n*angle_step])
+                  translate([-standoff_distance/2,-standoff_distance/2, connector_height/2]) 
+                  color("red")
+                  standoff(standoff_diameter + tolerance, connector_height * 2, true);                  
+         }           
+    }
+}
