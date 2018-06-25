@@ -56,7 +56,8 @@ module bridge(bridge_length, bridge_thickness, bridge_height, mount_diameter, br
 }
 
 module antenna_placeholder(width, height){
-    cube([width,20,standoff_height],true);
+    less_relevant_depth = 30;
+    cube([width,less_relevant_depth,height],true);
 }
 
 module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset) {
@@ -64,15 +65,15 @@ module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset)
     bridge_height = connector_height;
     bridge_thickness = 2;
     
-//    placeholder_size = 10;
-//    placeholder_height = standoff_height - placeholder_size/2;    
+    placeholder_width = standoff_distance - standoff_diameter;
+    placeholder_height = 15;
     
     number_of_bridges = 1;
     
     bridge_length = standoff_distance; 
 
     angle_step = 90;
-    translate([0, 0,connector_height/2])
+    translate([0, 0, connector_height/2])
     
     difference(){
         union(){
@@ -89,11 +90,27 @@ module pod(standoff_distance, standoff_diameter, standoff_height, bridge_offset)
              };         
          };
 //        diff does not work ?    
-//        translate([0,-standoff_distance/2,placeholder_height])         
-//        antenna_placeholder(40, 40, 40);         
-    };      
-        translate([0,-standoff_distance/2,0])         
-        antenna_placeholder(standoff_distance - standoff_diameter, connector_height);       
+        translate([0,-standoff_distance/2, connector_height/2 ])         
+        antenna_placeholder(placeholder_width-2, placeholder_height);       
+    };
+}
+
+
+module antenna_pipe(){
+    height = 20;
+    diameter_out= 4;
+    diameter_in = 2;
+    difference(){
+        cylinder(height,diameter_out/2, diameter_out/2, true);        
+        cylinder(2*height,diameter_in/2, diameter_in/2, true);        
+    }
+}
+
+module pod_with_antenna_pipes(standoff_distance, mount_diameter, standoff_height, bridge_offset) {
+    union(){
+        pod(standoff_distance, mount_diameter, standoff_height, bridge_offset);    
+        antenna_pipe();
+    }
 }
 
 module pod_with_mounting_holes(standoff_distance, standoff_diameter, standoff_height, mount_thickness, bridge_offset, tolerance) {
@@ -109,7 +126,7 @@ module pod_with_mounting_holes(standoff_distance, standoff_diameter, standoff_he
     angle_step = 90;
     
     difference(){
-        pod(standoff_distance, mount_diameter, standoff_height, bridge_offset);
+        pod_with_antenna_pipes(standoff_distance, mount_diameter, standoff_height, bridge_offset);
          for (n = [0:1:number_of_bridges]){
                   rotate([0,0, n*angle_step])
                   translate([-standoff_distance/2,-standoff_distance/2, connector_height/2]) 
